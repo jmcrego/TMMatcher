@@ -18,23 +18,22 @@ def upload_endpoint(file: UploadFile, name: str) -> TMUploadResponse:
 
     with open(tsv_path, "r", encoding="utf-8") as f:
         corpus_json = [
-            {"source": source, "target": target}
-            for source, target in (line.strip().split("\t") for line in f)
+            {"source": source, "target": target} for source, target in (line.strip().split("\t") for line in f)
         ]
 
     # Extract the source sentences for indexing
     corpus_source = [doc["source"] for doc in corpus_json]
+    # tokenize the source sentences (you can use your custom tokenizer here)
     corpus_tokens = [tokenize(s) for s in corpus_source]
 
     # Create the BM25 retriever and attach the corpus_json to it (optional, but allows you to get the original sentences back)
-    automaton = bm25s.BM25(corpus=corpus_json)
+    automaton = bm25s.BM25()
     # Add corpus_tokens to the index
-    automaton.index(corpus_tokens)
+    automaton.index(corpus_tokens, corpus=corpus_json) # corpus_json is the original documents, which will be returned in the results
 
-    # Save the arrays to a directory...
-    automaton.save(os.path.join(RESOURCES_DIR, name))
-    # Save the corpus also with the model
-    automaton.save(os.path.join(RESOURCES_DIR, name), corpus=corpus_json)
+    # Save the index, and the corpus 
+    path = os.path.join(RESOURCES_DIR, name)
+    automaton.save(path, corpus=corpus_json)
 
     with indices_lock:
         indices[name] = {"automaton": automaton, "size": len(corpus_json)}

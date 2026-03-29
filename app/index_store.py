@@ -3,23 +3,14 @@ import os
 import bm25s
 from .shared import indices, indices_lock, RESOURCES_DIR
 
-def load_index(name: str):
-    # Ensure resources directory exists
-    os.makedirs(RESOURCES_DIR, exist_ok=True)
-
-    # ... load the model when you need it
-
-    index_path = os.path.join(RESOURCES_DIR, f"{name}")
-
-    if not os.path.exists(index_path):
-        return False
-    automaton = bm25s.BM25.load(index_path, load_corpus=True)
+def load_index(name):
+    path_name = os.path.join(RESOURCES_DIR, name)
+    automaton = bm25s.BM25.load(path_name, load_corpus=True)
     with indices_lock:
         indices[name] = {"automaton": automaton, "size": len(automaton.corpus)}
     return True
 
 def load_all_indices():
-    for fname in os.listdir(RESOURCES_DIR):
-        if os.path.isdir(os.path.join(RESOURCES_DIR, fname)):
-            name = fname
+    for name in os.listdir(RESOURCES_DIR):
+        if os.path.isdir(os.path.join(RESOURCES_DIR, name)):
             load_index(name)

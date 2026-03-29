@@ -32,8 +32,8 @@ def rescore(query_tokens, results, scores, k=5):
             source_tokens = tokenize(doc['source'])
             score = Levenshtein.distance(query_tokens, source_tokens)
             scores[b, i] = 1 - score / max(len(query_tokens), len(source_tokens)) # normalized edit distance
-    # Get the indices of the top-k scores over each row (query)
-    top_k_indices = scores.argsort(axis=1)[:, :k] # sort ascending and take top k shape is (n_queries, k)
+    # Get the indices of the top-k scores over each row (query), sort descending and take top k
+    top_k_indices = scores.argsort(axis=1)[:, ::-1][:, :k] # sort descending and take top k shape is (n_queries, k)
     results = np.take_along_axis(results, top_k_indices, axis=1)
     scores = np.take_along_axis(scores, top_k_indices, axis=1)
     return results, scores
@@ -45,6 +45,7 @@ def match_endpoint(request: TMMatchRequest) -> TMMatchResponse:
     with indices_lock:
         for idx in request.indices:
             entry = indices.get(idx)
+            print(f"entry for index '{idx}': {entry}")
             if not entry:
                 continue
             automaton = entry["automaton"]
