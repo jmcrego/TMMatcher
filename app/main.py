@@ -19,7 +19,7 @@ from .remove import remove_endpoint, UDRemoveRequest, UDRemoveResponse
 async def lifespan(app: FastAPI):
     load_all_indices()
     yield # marks the point where the app starts accepting requests
-
+ 
 # FastAPI app
 app = FastAPI(lifespan=lifespan)
 
