@@ -49,7 +49,7 @@ def match_endpoint(request: TMMatchRequest) -> TMMatchResponse:
             if not entry:
                 continue
             automaton = entry["automaton"]
-            results, scores = automaton.retrieve([query_tokens], k=10)
+            results, scores = automaton.retrieve([query_tokens], k=50)
             results, scores = rescore(query_tokens, results, scores, k=5)
             for i in range(results.shape[1]):
                 doc, score = results[0, i], scores[0, i]
