@@ -1,3 +1,4 @@
 fastapi
+uvicorn
 rapidfuzz
 bm25s[core]
