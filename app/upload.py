@@ -37,5 +37,5 @@ def upload_endpoint(file: UploadFile, name: str) -> TMUploadResponse:
     automaton.save(os.path.join(RESOURCES_DIR, name), corpus=corpus_json)
 
     with indices_lock:
-        indices[name] = {"automaton": automaton, "size": len(automaton)}
-    return TMUploadResponse(status="ok", index=name, size=len(automaton))
+        indices[name] = {"automaton": automaton, "size": len(corpus_json)}
+    return TMUploadResponse(status="ok", index=name, size=len(corpus_json))

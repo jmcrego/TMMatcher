@@ -44,7 +44,7 @@ Query one or more indices for exact term matches in a sentence.
 
 Start the FastAPI server (default port 8000, or use --port 8001 if needed):
 ```bash
-uvicorn app:main --reload --port 8002
+uvicorn app.main:app --reload --port 8002
 ```
 
 ## Example Requests

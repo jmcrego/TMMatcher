@@ -1,10 +1,13 @@
 
 import time
+import numpy as np
 from pydantic import BaseModel
 from typing import List
 from .shared import indices, indices_lock, tokenize
 
-from rapidfuzz import fuzz
+#from rapidfuzz import fuzz
+from rapidfuzz.distance import Levenshtein
+
 
 class TMMatchRequest(BaseModel):
     sentence: str
@@ -27,14 +30,16 @@ def rescore(query_tokens, results, scores, k=5):
         for i in range(results.shape[1]):
             doc = results[b, i]
             source_tokens = tokenize(doc['source'])
-            score = fuzz.edit_distance(query_tokens, source_tokens)
+            score = Levenshtein.distance(query_tokens, source_tokens)
             scores[b, i] = 1 - score / max(len(query_tokens), len(source_tokens)) # normalized edit distance
     # Get the indices of the top-k scores over each row (query)
     top_k_indices = scores.argsort(axis=1)[:, :k] # sort ascending and take top k shape is (n_queries, k)
-    return results[:, top_k_indices], scores[:, top_k_indices]
+    results = np.take_along_axis(results, top_k_indices, axis=1)
+    scores = np.take_along_axis(scores, top_k_indices, axis=1)
+    return results, scores
 
 def match_endpoint(request: TMMatchRequest) -> TMMatchResponse:
-    results = []
+    res = []
     tic = time.perf_counter()
     query_tokens = tokenize(request.sentence)  # or use your custom tokenizer
     with indices_lock:
@@ -47,11 +52,11 @@ def match_endpoint(request: TMMatchRequest) -> TMMatchResponse:
             results, scores = rescore(query_tokens, results, scores, k=5)
             for i in range(results.shape[1]):
                 doc, score = results[0, i], scores[0, i]
-                results.append(TMMatchResult(
+                res.append(TMMatchResult(
                     index=idx,
                     source=doc['source'],
                     target=doc['target'],
                     score=score
                 ))
     runtime_s = time.perf_counter() - tic
-    return TMMatchResponse(matches=results, runtime_ms=runtime_s * 1000)
+    return TMMatchResponse(matches=res, runtime_ms=runtime_s * 1000)

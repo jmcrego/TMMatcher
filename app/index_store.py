@@ -13,9 +13,9 @@ def load_index(name: str):
 
     if not os.path.exists(index_path):
         return False
-    automaton = bm25s.BM25.load("ECB_index", load_corpus=False)
+    automaton = bm25s.BM25.load(index_path, load_corpus=True)
     with indices_lock:
-        indices[name] = {"automaton": automaton, "size": len(automaton)}
+        indices[name] = {"automaton": automaton, "size": len(automaton.corpus)}
     return True
 
 def load_all_indices():
