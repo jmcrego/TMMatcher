@@ -1,7 +1,7 @@
 
-# FastAPI BM25s Matcher
+# FastAPI bm25s Matcher
 
-A FastAPI application for high-speed fuzzy matching using multiple <b>BM25s</b> indices. Supports concurrent requests, index upload, and health monitoring.
+A FastAPI application for high-speed fuzzy matching using multiple <b>bm25s</b> indices. Supports concurrent requests, index upload, and health monitoring.
 
 ## Features
 - Loads all `bm25s` indices from the `resources/` directory at startup
