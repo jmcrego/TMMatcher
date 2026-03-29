@@ -3,6 +3,24 @@
 
 A FastAPI application for high-speed fuzzy matching using multiple <b>bm25s</b> indices. Supports concurrent requests, index upload, and health monitoring.
 
+## How TM Matches and Sentences Are Preprocessed
+
+Before matching, both translation memory (TM) entries and input sentences are preprocessed using a simple preprocessing. This ensures consistent matching and scoring across different queries and indices.
+
+### Preprocessing Steps
+
+- All text is lowercased.
+- Sentences are tokenized using the following regular expression pattern:
+
+  ```python
+  TOKEN_PATTERN = re.compile(r"\\w+", re.UNICODE)
+  ```
+
+  This pattern extracts continuous sequences of word characters (letters, digits, and underscores), effectively splitting sentences into words and numbers.
+- The resulting list of tokens is used for both indexing and querying.
+
+This approach ensures that punctuation and case do not affect the matching process, and that only meaningful word units are compared.
+
 ## Features
 - Loads all `bm25s` indices from the `resources/` directory at startup
 - `/health`: Lists available indices and their sizes
