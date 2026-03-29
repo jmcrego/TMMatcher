@@ -3,7 +3,7 @@
 
 A FastAPI application for high-speed fuzzy matching using multiple <b>bm25s</b> indices. Supports concurrent requests, index upload, and health monitoring.
 
-## How TM Matches and Sentences Are Preprocessed
+## Preprocessing TM/queries
 
 Before matching, both translation memory (TM) entries and input sentences are preprocessed using a simple preprocessing. This ensures consistent matching and scoring across different queries and indices.
 
