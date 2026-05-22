@@ -76,13 +76,6 @@ def clear_cache():
     print()
 
 
-def reset_stats():
-    """Reset all statistics."""
-    shared.stats.reset()
-    print("✓ Statistics reset")
-    print()
-
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(__doc__)
@@ -94,8 +87,6 @@ if __name__ == "__main__":
         show_stats()
     elif command == "clear":
         clear_cache()
-    elif command == "reset":
-        reset_stats()
     else:
         print(f"Unknown command: {command}")
         print(__doc__)

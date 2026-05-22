@@ -62,14 +62,3 @@ class Statistics:
                 "min_runtime_ms": round(self.min_runtime_ms, 2) if self.min_runtime_ms != float('inf') else 0.0,
                 "max_runtime_ms": round(self.max_runtime_ms, 2),
             }
-
-    def reset(self) -> None:
-        """Reset all statistics."""
-        with self._lock:
-            self.total_requests = 0
-            self.total_cache_hits = 0
-            self.total_cache_misses = 0
-            self.total_errors = 0
-            self.total_runtime_ms = 0.0
-            self.min_runtime_ms = float('inf')
-            self.max_runtime_ms = 0.0

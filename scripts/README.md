@@ -169,23 +169,21 @@ python test_pipeline.py --host localhost:8000
 
 ### 6. `cache_stats.py` - Cache Management
 
-View and manage cache statistics and settings.
+View and manage cache statistics.
 
 **Usage:**
 ```bash
-python cache_stats.py [stats|clear|reset]
+python cache_stats.py [stats|clear]
 ```
 
 **Commands:**
 - `stats` - Display cache and service statistics
 - `clear` - Clear all cache entries
-- `reset` - Reset service statistics
 
 **Examples:**
 ```bash
 python cache_stats.py stats    # View cache stats
 python cache_stats.py clear    # Clear cache
-python cache_stats.py reset    # Reset statistics
 ```
 
 **Output shows:**
