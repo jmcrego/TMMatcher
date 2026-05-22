@@ -62,14 +62,9 @@ View cache statistics:
 python scripts/cache_stats.py stats
 ```
 
-Clear cache:
+Get full health response with statistics:
 ```bash
-python scripts/cache_stats.py clear
-```
-
-Reset statistics:
-```bash
-python scripts/cache_stats.py reset
+python scripts/cache_stats.py health
 ```
 
 ### Performance Monitoring

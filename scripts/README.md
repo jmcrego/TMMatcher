@@ -167,24 +167,31 @@ python test_pipeline.py --host localhost:8000
 
 ---
 
-### 6. `cache_stats.py` - Cache Management
+### 6. `cache_stats.py` - Cache Statistics & Health Check
 
-View and manage cache statistics.
+View and manage cache statistics via the `/health` endpoint. Requires running server.
 
 **Usage:**
 ```bash
-python cache_stats.py [stats|clear]
+python cache_stats.py [stats|health|clear]
 ```
 
 **Commands:**
-- `stats` - Display cache and service statistics
-- `clear` - Clear all cache entries
+- `stats` - Display formatted cache and service statistics
+- `health` - Get full health endpoint response as JSON
+- `clear` - Information about cache clearing
 
 **Examples:**
 ```bash
 python cache_stats.py stats    # View cache stats
-python cache_stats.py clear    # Clear cache
+python cache_stats.py health   # Full health response
+python cache_stats.py clear    # Cache info
 ```
+
+**Output shows:**
+- Service statistics (requests, errors, cache hits/misses, runtime metrics)
+- Cache configuration (enabled, type, current size, max size)
+- Loaded indices
 
 **Output shows:**
 - Cache backend type (memory or redis)
@@ -274,18 +281,15 @@ python test_pipeline.py
 
 Look for the cache speedup measurement in the "Test Cache" step.
 
-### Stress Testing
+### View Cache Statistics
 
-Test with many queries:
+After running tests, check cache performance:
 
 ```bash
-for i in {1..100}; do
-  python test_match.py --query "test query $i" &
-done
-wait
-
 python cache_stats.py stats
 ```
+
+Shows total requests, cache hits/misses, hit rate percentage, and runtime metrics.
 
 ---
 

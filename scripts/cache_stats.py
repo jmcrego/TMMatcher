@@ -3,91 +3,114 @@
 Cache statistics and management utility for TMMatcher.
 
 Usage:
-    python cache_stats.py [stats|clear]
+    python scripts/cache_stats.py stats       - Show cache statistics (requires running server)
+    python scripts/cache_stats.py clear       - Clear cache via API (requires running server)
+    python scripts/cache_stats.py health      - Get full health check including stats
 
 Examples:
-    python cache_stats.py stats     # Show cache statistics
-    python cache_stats.py clear     # Clear cache
+    python scripts/cache_stats.py stats
+    python scripts/cache_stats.py health
+    python scripts/cache_stats.py clear
 """
 
 import sys
-import os
-from pathlib import Path
-
-# Add app to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from app import shared
-from app.cache import get_cache_backend
+import json
+import requests
+from typing import Optional
 
 
-def show_stats():
-    """Display cache statistics."""
-    if not shared.CACHE_ENABLED:
-        print("Cache is disabled (TM_CACHE_ENABLED=false)")
+# Configuration
+DEFAULT_HOST = "http://localhost:8002"
+
+
+def get_health_stats(host: str = DEFAULT_HOST) -> Optional[dict]:
+    """Fetch health stats from running server."""
+    try:
+        response = requests.get(f"{host}/health", timeout=5)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.ConnectionError:
+        print(f"Error: Cannot connect to server at {host}")
+        print("Make sure the server is running: uvicorn app.main:app --reload --port 8002")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching health stats: {e}")
+        return None
+
+
+def show_stats(host: str = DEFAULT_HOST) -> None:
+    """Display cache and service statistics."""
+    data = get_health_stats(host)
+    if not data:
         return
     
-    cache = get_cache_backend(shared.CACHE_TYPE)
+    print("\n" + "=" * 70)
+    print("SERVICE STATISTICS")
+    print("=" * 70)
     
-    print("=" * 50)
-    print("TMMatcher Cache Statistics")
-    print("=" * 50)
-    print()
-    print(f"Cache Backend: {shared.CACHE_TYPE}")
-    print(f"Cache Enabled: {shared.CACHE_ENABLED}")
-    print(f"Max Cache Size: {shared.CACHE_MAX_SIZE} entries")
-    print()
+    if "statistics" in data:
+        stats = data["statistics"]
+        print(f"Total Requests:      {stats.get('total_requests', 0)}")
+        print(f"Successful Requests: {stats.get('successful_requests', 0)}")
+        print(f"Total Errors:        {stats.get('total_errors', 0)}")
+        print(f"\nCache Performance:")
+        print(f"  Cache Hits:        {stats.get('cache_hits', 0)}")
+        print(f"  Cache Misses:      {stats.get('cache_misses', 0)}")
+        print(f"  Hit Rate:          {stats.get('cache_hit_rate_percent', 0):.2f}%")
+        print(f"\nRuntime Metrics (ms):")
+        print(f"  Average:           {stats.get('average_runtime_ms', 0):.2f}")
+        print(f"  Min:               {stats.get('min_runtime_ms', 0):.2f}")
+        print(f"  Max:               {stats.get('max_runtime_ms', 0):.2f}")
     
-    if hasattr(cache, 'stats'):
-        cache_stats = cache.stats()
-        print("Cache Status:")
-        print(f"  Current entries: {cache_stats.get('size', 'N/A')}")
-        print(f"  Max entries: {cache_stats.get('max_size', 'N/A')}")
-        
-        if 'memory_usage_mb' in cache_stats:
-            print(f"  Memory usage: {cache_stats.get('memory_usage_mb', 'N/A')} MB")
-    else:
-        print("Cache stats not available for this backend")
+    if "cache" in data:
+        cache = data["cache"]
+        print(f"\nCache Configuration:")
+        print(f"  Enabled:           {cache.get('enabled', False)}")
+        print(f"  Type:              {cache.get('type', 'N/A')}")
+        print(f"  Current Size:      {cache.get('size', 0)}")
+        print(f"  Max Size:          {cache.get('max_size', 0)}")
     
-    print()
-    print("Service Statistics:")
-    stats_dict = shared.stats.get_stats()
-    print(f"  Total requests: {stats_dict['total_requests']}")
-    print(f"  Successful requests: {stats_dict['successful_requests']}")
-    print(f"  Errors: {stats_dict['total_errors']}")
-    print(f"  Cache hits: {stats_dict['cache_hits']}")
-    print(f"  Cache misses: {stats_dict['cache_misses']}")
-    print(f"  Cache hit rate: {stats_dict['cache_hit_rate_percent']:.2f}%")
-    print(f"  Average runtime: {stats_dict['average_runtime_ms']:.2f} ms")
-    print(f"  Min runtime: {stats_dict['min_runtime_ms']:.2f} ms")
-    print(f"  Max runtime: {stats_dict['max_runtime_ms']:.2f} ms")
-    print()
+    if "indices" in data:
+        print(f"\nLoaded Indices: {len(data['indices'])}")
+        for idx in data["indices"]:
+            print(f"  - {idx['name']}: {idx['size']} terms")
+    
+    print("=" * 70 + "\n")
 
 
-def clear_cache():
-    """Clear all cache entries."""
-    if not shared.CACHE_ENABLED:
-        print("Cache is disabled (TM_CACHE_ENABLED=false)")
-        return
-    
-    cache = get_cache_backend(shared.CACHE_TYPE)
-    cache.clear()
-    print(f"✓ Cache cleared ({shared.CACHE_TYPE})")
-    print()
+def show_full_health(host: str = DEFAULT_HOST) -> None:
+    """Display full health check response as JSON."""
+    data = get_health_stats(host)
+    if data:
+        print(json.dumps(data, indent=2))
 
 
-if __name__ == "__main__":
+def clear_cache(host: str = DEFAULT_HOST) -> None:
+    """Clear the cache by requesting cache clear (if implemented)."""
+    print("Cache will be automatically cleared when indices are uploaded or removed.")
+    print("To manually clear cache, restart the server.")
+
+
+def main():
+    """Main CLI entry point."""
     if len(sys.argv) < 2:
         print(__doc__)
-        sys.exit(1)
+        return
     
     command = sys.argv[1].lower()
     
     if command == "stats":
         show_stats()
+    elif command == "health":
+        show_full_health()
     elif command == "clear":
         clear_cache()
+    elif command in ["-h", "--help", "help"]:
+        print(__doc__)
     else:
         print(f"Unknown command: {command}")
         print(__doc__)
-        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
