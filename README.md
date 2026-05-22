@@ -27,6 +27,86 @@ This approach ensures that punctuation and case do not affect the matching proce
 - `/health`: Lists available indices and their sizes
 - `/upload`: Upload a TSV translation memory file and specify the index name to create and load
 - `/match`: Query one or more indices for fuzzy sentence matches, returning an n-best list containing the fuzzy match and score
+- **Caching System**: In-memory LRU cache (or Redis) to speed up repeated queries
+- **Statistics Tracking**: Comprehensive request tracking, cache performance metrics, and runtime analysis
+
+## Caching
+
+TMMatcher includes an intelligent caching system to improve performance for repeated searches. The cache stores previous match results to serve identical queries instantly.
+
+### Cache Backends
+
+- **Memory (default)**: Fast in-memory LRU cache, perfect for single-server deployments
+- **Redis**: Distributed cache backend for multi-server setups
+
+### Cache Configuration
+
+All cache settings are configured via environment variables:
+
+```bash
+# Enable cache (default: true)
+export TM_CACHE_ENABLED=true
+
+# Cache backend: 'memory' (default) or 'redis'
+export TM_CACHE_TYPE=memory
+
+# Maximum cache entries in memory (default: 1000)
+# Older entries are evicted using LRU when limit is reached
+export TM_CACHE_MAX_SIZE=1000
+```
+
+### Cache Management
+
+View cache statistics:
+```bash
+python scripts/cache_stats.py stats
+```
+
+Clear cache:
+```bash
+python scripts/cache_stats.py clear
+```
+
+Reset statistics:
+```bash
+python scripts/cache_stats.py reset
+```
+
+### Performance Monitoring
+
+The `/health` endpoint provides comprehensive cache and service statistics:
+
+```bash
+curl http://localhost:8002/health | python -m json.tool
+```
+
+Response includes:
+- **Cache Status**: Current entries, max size, cache type
+- **Service Statistics**: Total requests, cache hits/misses, hit rate percentage, min/max/average runtime
+
+Example:
+```json
+{
+  "indices": [...],
+  "cache": {
+    "enabled": true,
+    "type": "memory",
+    "size": 245,
+    "max_size": 1000
+  },
+  "statistics": {
+    "total_requests": 1250,
+    "successful_requests": 1247,
+    "total_errors": 3,
+    "cache_hits": 892,
+    "cache_misses": 355,
+    "cache_hit_rate_percent": 71.53,
+    "average_runtime_ms": 4.23,
+    "min_runtime_ms": 0.12,
+    "max_runtime_ms": 45.67
+  }
+}
+```
 
 ## Endpoints
 

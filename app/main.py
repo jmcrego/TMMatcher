@@ -13,12 +13,25 @@ from .match import match_endpoint, TMMatchRequest, TMMatchResponse
 
 from .health import health_endpoint, TMHealthResponse
 from .remove import remove_endpoint, TMRemoveRequest, TMRemoveResponse
+from .cache import get_cache_backend
+from . import shared
 
 # Load existing indices on startup (this will be done in the lifespan context manager, when the app starts)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize cache backend
+    if shared.CACHE_ENABLED:
+        shared.CACHE_BACKEND = get_cache_backend(shared.CACHE_TYPE)
+        print(f"✓ Cache enabled: {shared.CACHE_TYPE} (max {shared.CACHE_MAX_SIZE} entries)")
+    else:
+        print("Cache disabled")
+    
     load_all_indices()
     yield # marks the point where the app starts accepting requests
+    
+    # Cleanup
+    if shared.CACHE_BACKEND:
+        shared.CACHE_BACKEND.clear()
  
 # FastAPI app
 app = FastAPI(lifespan=lifespan)
