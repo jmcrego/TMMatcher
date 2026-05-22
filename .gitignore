@@ -1,8 +1,11 @@
 __pycache__/
 *.pyc
 .env
-resources/*
 .env.*
 .idea/
 .vscode/
 .DS_Store
+
+# External resources directory (not part of repo)
+# Resources are stored in ~/.tm_resources by default
+# Set TM_RESOURCES_PATH environment variable to use a custom location

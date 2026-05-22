@@ -23,7 +23,7 @@ Translation memory entries (TM first column) and queries are preprocessed before
 This approach ensures that punctuation and case do not affect the matching process, and that only meaningful word units are compared.
 
 ## Features
-- Loads all `bm25s` indices from the `resources/` directory at startup
+- Loads all `bm25s` indices from the external resources directory (`~/.tm_resources`) at startup
 - `/health`: Lists available indices and their sizes
 - `/upload`: Upload a TSV translation memory file and specify the index name to create and load
 - `/match`: Query one or more indices for fuzzy sentence matches, returning an n-best list containing the fuzzy match and score
@@ -114,16 +114,26 @@ Example:
 Returns a list of loaded indices and their sizes (number of terms).
 
 ### `POST /upload`
-Upload a TSV file (two columns: `<source sentence>\t<target sentence>`) and specify the index name. The server saves the file as `resources/NAME.tsv`, builds the index `resources/NAME/`, and loads it into memory.
+Upload a TSV file (two columns: `<source sentence>\t<target sentence>`) and specify the index name. The server saves the file to `~/.tm_resources/NAME.tsv`, builds the index `~/.tm_resources/NAME/`, and loads it into memory.
 
 **Request (multipart/form-data):**
 - `file`: The TSV translation memory file
-- `name`: The desired index name (used for .tsv and .pkl files)
+- `name`: The desired index name (used for .tsv and index directory)
 
 ### `POST /match`
 Query one or more indices for exact term matches in a sentence.
 
 ## Setup
+
+### Resources Directory
+
+By default, TMMatcher stores all indices and uploads in `~/.tm_resources`. To use a custom location, set the environment variable:
+
+```bash
+export TM_RESOURCES_PATH=/path/to/your/resources
+```
+
+The directory will be created automatically if it doesn't exist.
 
 ### Installation
 
@@ -175,8 +185,9 @@ curl -X POST "http://localhost:8002/remove" \
 ```
 
 ## Directory Structure
-- `app.py` — Main FastAPI application
-- `resources/` — Directory for .tsv files and index dirs
+- `app/` — Main application modules
+- `scripts/` — Utility scripts (cache_stats.py)
+- `~/.tm_resources/` — External resources directory (indices, TSV files)
 
 ## License
 MIT

@@ -13,7 +13,10 @@ def tokenize(text):
 # Shared resources for the app
 indices = {}
 indices_lock = threading.Lock()
-RESOURCES_DIR = Path(__file__).parent.parent / "resources"
+
+# Use environment variable TM_RESOURCES_PATH, default to ~/.tm_resources
+RESOURCES_PATH = Path(os.getenv("TM_RESOURCES_PATH", str(Path.home() / ".tm_resources"))).expanduser()
+RESOURCES_PATH.mkdir(parents=True, exist_ok=True)
 
 # Service statistics
 stats = Statistics()

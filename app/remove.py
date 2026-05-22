@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from pydantic import BaseModel
-from .shared import indices, indices_lock, RESOURCES_DIR
+from .shared import indices, indices_lock, RESOURCES_PATH
 import os
 
 
@@ -20,11 +20,11 @@ def remove_endpoint(request: TMRemoveRequest) -> TMRemoveResponse:
         # Remove from memory
         del indices[name]
     # Remove directory
-    index_dir = os.path.join(RESOURCES_DIR, name)
+    index_dir = os.path.join(RESOURCES_PATH, name)
     if os.path.exists(index_dir):
         os.rmdir(index_dir)
     # Remove .tsv file
-    tsv_path = os.path.join(RESOURCES_DIR, f"{name}.tsv")
+    tsv_path = os.path.join(RESOURCES_PATH, f"{name}.tsv")
     if os.path.exists(tsv_path):
         os.remove(tsv_path)
     return TMRemoveResponse(status="removed", index=name)

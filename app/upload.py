@@ -4,7 +4,7 @@ import bm25s
 
 from fastapi import UploadFile
 from pydantic import BaseModel
-from .shared import indices, indices_lock, RESOURCES_DIR, tokenize
+from .shared import indices, indices_lock, RESOURCES_PATH, tokenize
 
 class TMUploadResponse(BaseModel):
     status: str
@@ -12,7 +12,7 @@ class TMUploadResponse(BaseModel):
     size: int
 
 def upload_endpoint(file: UploadFile, name: str) -> TMUploadResponse:
-    tsv_path = os.path.join(RESOURCES_DIR, f"{name}.tsv")
+    tsv_path = os.path.join(RESOURCES_PATH, f"{name}.tsv")
     with open(tsv_path, "wb") as out:
         out.write(file.file.read())
 
@@ -32,7 +32,7 @@ def upload_endpoint(file: UploadFile, name: str) -> TMUploadResponse:
     automaton.index(corpus_tokens, corpus=corpus_json) # corpus_json is the original documents, which will be returned in the results
 
     # Save the index, and the corpus 
-    path = os.path.join(RESOURCES_DIR, name)
+    path = os.path.join(RESOURCES_PATH, name)
     automaton.save(path, corpus=corpus_json)
 
     with indices_lock:
